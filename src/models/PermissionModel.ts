@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import UserModel from '@/models/UserModel'
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 
 //'$2a$10$faWKD.j8fY2GdQ6wadHYW.bfIVjrY1y6M5pvH8.VR99mHCkUCZDRe'
 
@@ -23,7 +24,9 @@ class PermissionModel {
     @Column({ type: 'boolean', default: false })
     canDestroy!: boolean
 
-
+    @OneToOne(() => UserModel)
+    @JoinColumn({ name: 'userId' })
+    user!: UserModel
 
 }
 

@@ -15,7 +15,7 @@ const entities: MixedList<string | Function | EntitySchema<any>> | undefined = [
     Permission
 ]
 
-const MysqlDataSource = new DataSource({
+export const MysqlDataSource = new DataSource({
     type: "mysql",
     host: env.MYSQL_DATABASE_HOST,
     port: env.MYSQL_DATABASE_PORT,

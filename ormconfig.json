@@ -1,0 +1,9 @@
+[
+  {
+    "entities": ["./src/models/**/*.ts"],
+    "migrations": ["./src/migrations/*.ts"],
+    "cli": {
+      "migrationsDir": "./src/db/migrations/"
+    }
+  }
+]

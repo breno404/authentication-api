@@ -1,17 +1,37 @@
-import UserModel from '@/models/UserModel';
+import DataSource from '@/db/DataSource';
+import UserDTO, { InputData } from '@/dto/UserDTO';
+import Permission from '@/models/PermissionModel';
+import Role from '@/models/RoleModel';
+import User from '@/models/UserModel';
 import BCryptService from '@/services/BCryptService';
 import JWTService from '@/services/JWTService';
 import type Express from 'express';
+import { FindOptionsSelect, FindOptionsSelectByString } from 'typeorm';
 
 export default class AuthController {
     static async login(req: Express.Request, res: Express.Response) {
-        const { username, password } = req.body;
+        const { username, password } = req.body as Record<string, string>;
+        const ds = await DataSource.getMysqlDataSource()
 
-        const user = username == UserModel.username && UserModel
+        const selectFields: FindOptionsSelect<User> | FindOptionsSelectByString<User> | undefined = {
+            id: true, name: true, password: true, isAdmin: true, isActive: true, username: true
+        }
+
+        const userRepository = ds.getRepository(User)
+        const permissionRepository = ds.getRepository(Permission)
+        const roleRepository = ds.getRepository(Role)
+
+        const [user, permission, role] = await Promise.all([
+            userRepository.findOne({ where: { username, isActive: true }, select: selectFields }),
+            permissionRepository.findOne({ where: { user: { username, isActive: true } }, select: { id: false } }),
+            roleRepository.findOne({ where: { user: { username, isActive: true } }, select: { id: false } })
+        ])
 
         if (user && (await BCryptService.compare(password, user.password))) {
-            const accessToken = JWTService.generateAccessToken(UserModel);
-            const refreshToken = JWTService.generateRefreshToken({ username: user.username, roles: user.roles });
+
+            const userDTO = UserDTO({ ...user, ...permission, ...role } as InputData)
+            const accessToken = JWTService.generateAccessToken(userDTO);
+            const refreshToken = JWTService.generateRefreshToken({ id: userDTO.id, username: userDTO.username, roles: userDTO.roles });
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
@@ -36,14 +56,32 @@ export default class AuthController {
         const refreshToken = req.cookies.refreshToken;
 
         if (refreshToken) {
-            JWTService.verifyRefreshToken(refreshToken, (err, decoded) => {
+            JWTService.verifyRefreshToken(refreshToken, async (err, decoded) => {
                 if (err) {
                     res.status(403).json({ message: 'Token inválido' });
 
                 } else {
-                    const username = (decoded as Record<string, any>).username;
+                    const ds = await DataSource.getMysqlDataSource()
+                    const id = +(decoded as Record<string, any>).id;
 
-                    const newAccessToken = JWTService.generateAccessToken(UserModel);
+                    const selectFields: FindOptionsSelect<User> | FindOptionsSelectByString<User> | undefined = {
+                        id: true, name: true, isAdmin: true, isActive: true, username: true
+                    }
+
+                    const userRepository = ds.getRepository(User)
+                    const permissionRepository = ds.getRepository(Permission)
+                    const roleRepository = ds.getRepository(Role)
+
+                    const [user, permission, role] = await Promise.all([
+                        userRepository.findOne({ where: { id, isActive: true }, select: selectFields }),
+                        permissionRepository.findOne({ where: { user: { id, isActive: true } }, select: { id: false } }),
+                        roleRepository.findOne({ where: { user: { id, isActive: true } }, select: { id: false } })
+                    ])
+
+                    const userDTO = UserDTO({ ...user, ...permission, ...role } as InputData)
+
+                    const newAccessToken = JWTService.generateAccessToken(userDTO);
+
                     res.json({ accessToken: newAccessToken });
                 }
             })

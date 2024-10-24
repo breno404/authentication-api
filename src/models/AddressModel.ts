@@ -1,5 +1,5 @@
+import UserModel from '@/models/UserModel'
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
-import UserModel from './UserModel'
 
 export enum ContactType {
     EMAIL = 'email',

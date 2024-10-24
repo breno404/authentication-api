@@ -1,8 +1,6 @@
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
-import AddressModel from './AddressModel'
-import ContactModel from './ContactModel'
-import PermissionModel from './PermissionModel'
-import RoleModel from './RoleModel'
+import AddressModel from '@/models/AddressModel'
+import ContactModel from '@/models/ContactModel'
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 
 //'$2a$10$faWKD.j8fY2GdQ6wadHYW.bfIVjrY1y6M5pvH8.VR99mHCkUCZDRe'
 
@@ -23,14 +21,6 @@ class UserModel {
 
     @Column({ type: 'boolean', default: false })
     isAdmin!: boolean
-
-    @OneToOne(() => RoleModel)
-    @JoinColumn()
-    roles!: RoleModel
-
-    @OneToOne(() => PermissionModel)
-    @JoinColumn()
-    permissions!: PermissionModel
 
     @Column({ type: 'varchar', length: 255 })
     name!: string

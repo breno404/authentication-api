@@ -1,12 +1,10 @@
+import UserModel from '@/models/UserModel'
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
-import UserModel from './UserModel'
 
 export enum ContactType {
     EMAIL = 'email',
     PHONE = 'phone'
 }
-
-//'$2a$10$faWKD.j8fY2GdQ6wadHYW.bfIVjrY1y6M5pvH8.VR99mHCkUCZDRe'
 
 @Entity({ name: 'tb_contacts' })
 class ContactModel {
